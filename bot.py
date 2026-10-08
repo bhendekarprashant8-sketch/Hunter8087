@@ -3,9 +3,9 @@ import time
 import requests
 
 # Telegram और Cuelinks API की सेटिंग
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
-CHAT_ID = os.environ.get('CHAT_ID')
-CUELINKS_API_KEY = os.environ.get('CUELINKS_API_KEY')
+BOT_TOKEN = "8998943599:AAFlKkmZ6RkG8_1BTsCa57MvDQBzZCbibNE"
+CHAT_ID = "@smartshopper_store"
+CUELINKS_API_KEY = "gQMAYaIB1U8RVR1Vwop"
 
 # डुप्लीकेट रोकने के लिए भेजी गई डील्स का रिकॉर्ड रखने की सेट (Set)
 sent_deals = set()
@@ -17,7 +17,7 @@ def fetch_and_post_deals():
         "Accept": "application/json"
     }
     
-    print("हंटर 80 87 बोट सफलतापूर्वक शुरू हो गया है और डील्स की तलाश कर रहा है...")
+    print("स्मार्ट शॉपर्स बोट सफलतापूर्वक शुरू हो गया है और डील्स की तलाश कर रहा है...")
     
     while True:
         try:
@@ -58,7 +58,7 @@ def fetch_and_post_deals():
                         if tg_res.status_code == 200:
                             print(f"सफलतापूर्वक पोस्ट किया गया: {title}")
                             sent_deals.add(deal_id)
-                            # मेमोरी को हल्का रखने के लिए पुरानी पुरानी आईडी हटाना
+                            # मेमोरी को हल्का रखने के लिए पुरानी आईडी हटाना
                             if len(sent_deals) > 1000:
                                 sent_deals.pop()
                         else:

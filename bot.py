@@ -2,15 +2,20 @@ import os
 import time
 import requests
 
-# Telegram और Cuelinks API की सेटिंग
-BOT_TOKEN = "8998943599:AAFlKkmZ6RkG8_1BTsCa57MvDQBzZCbibNE"
-CHAT_ID = "@smartshopper_store"
-CUELINKS_API_KEY = "gQMAYaIB1U8RVR1Vwop"
+# Railway के एनवायरनमेंट वेरिएबल्स से सुरक्षित रूप से डेटा लेना
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
+CHAT_ID = os.environ.get('CHAT_ID')
+CUELINKS_API_KEY = os.environ.get('CUELINKS_API_KEY')
 
 # डुप्लीकेट रोकने के लिए भेजी गई डील्स का रिकॉर्ड रखने की सेट (Set)
 sent_deals = set()
 
 def fetch_and_post_deals():
+    # सुरक्षा जांच: अगर टोकन या की नहीं मिले तो बोट रुक जाएगा
+    if not BOT_TOKEN or not CUELINKS_API_KEY or not CHAT_ID:
+        print("त्रुटि: Railway में Variables (BOT_TOKEN, CHAT_ID, CUELINKS_API_KEY) सेट नहीं हैं!")
+        return
+
     url = "https://links.cuelinks.com/api/v2/deals"
     headers = {
         "Authorization": f"Bearer {CUELINKS_API_KEY}",
@@ -26,6 +31,9 @@ def fetch_and_post_deals():
             if response.status_code == 200:
                 data = response.json()
                 deals = data.get('deals', [])
+                
+                if not deals:
+                    print("फिलहाल Cuelinks API से कोई नई डील नहीं मिली है।")
                 
                 for deal in deals:
                     deal_id = str(deal.get('id', ''))
@@ -58,13 +66,11 @@ def fetch_and_post_deals():
                         if tg_res.status_code == 200:
                             print(f"सफलतापूर्वक पोस्ट किया गया: {title}")
                             sent_deals.add(deal_id)
-                            # मेमोरी को हल्का रखने के लिए पुरानी आईडी हटाना
                             if len(sent_deals) > 1000:
                                 sent_deals.pop()
                         else:
                             print(f"टेलीग्राम पर भेजने में असफल: {tg_res.text}")
                             
-                        # हर डील के बीच 5 सेकंड का गैप
                         time.sleep(5)
             else:
                 print(f"Cuelinks API एरर: {response.status_code} - {response.text}")
@@ -72,7 +78,6 @@ def fetch_and_post_deals():
         except Exception as e:
             print(f"त्रुटि (Error) आई: {e}")
             
-        # अगली बार डील्स चेक करने से पहले 15 मिनट (900 सेकंड) का इंतज़ार
         print("अगली फेचिंग 15 मिनट बाद होगी...")
         time.sleep(900)
 

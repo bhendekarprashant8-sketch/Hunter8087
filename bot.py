@@ -1,29 +1,13 @@
 import os
 import time
 import requests
-from threading import Thread
-from flask import Flask
 
-# 1. Render के पोर्ट एरर (No open ports detected) को रोकने के लिए डमी वेब सर्वर
-app = Flask('')
-
-@app.route('/')
-def home():
-    return "Hunter 80 87 Bot is Running Alive!"
-
-def run_web():
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
-
-def keep_alive():
-    t = Thread(target=run_web)
-    t.start()
-
-# 2. Telegram और Cuelinks API की सेटिंग
+# Telegram और Cuelinks API की सेटिंग
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 CHAT_ID = os.environ.get('CHAT_ID')
 CUELINKS_API_KEY = os.environ.get('CUELINKS_API_KEY')
 
-# डुप्लीकेट रोकने के लिए भेजी गई डील्स का रिकॉर्ड रखने की लिस्ट
+# डुप्लीकेट रोकने के लिए भेजी गई डील्स का रिकॉर्ड रखने की सेट (Set)
 sent_deals = set()
 
 def fetch_and_post_deals():
@@ -33,9 +17,10 @@ def fetch_and_post_deals():
         "Accept": "application/json"
     }
     
+    print("हंटर 80 87 बोट सफलतापूर्वक शुरू हो गया है और डील्स की तलाश कर रहा है...")
+    
     while True:
         try:
-            print("Cuelinks API से नई डील्स फेच की जा रही हैं...")
             response = requests.get(url, headers=headers)
             
             if response.status_code == 200:
@@ -49,9 +34,8 @@ def fetch_and_post_deals():
                     raw_url = deal.get('url', '')
                     store = deal.get('store', 'Shopping')
                     
-                    # अगर यह डील पहले नहीं भेजी गई है तभी आगे बढ़ेगा (डुप्लीकेट प्रिवेंशन)
+                    # डुप्लीकेट प्रिवेंशन: अगर डील पहले नहीं भेजी गई है तभी आगे बढ़ेगा
                     if deal_id and deal_id not in sent_deals:
-                        # एफिलिएट लिंक तैयार करना
                         aff_url = f"https://links.cuelinks.com/url?u={raw_url}"
                         
                         message = (
@@ -62,7 +46,6 @@ def fetch_and_post_deals():
                             f"📢 Join @Smart Shoppers"
                         )
                         
-                        # टेलीग्राम पर मैसेज भेजना
                         tg_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
                         payload = {
                             "chat_id": CHAT_ID,
@@ -75,13 +58,13 @@ def fetch_and_post_deals():
                         if tg_res.status_code == 200:
                             print(f"सफलतापूर्वक पोस्ट किया गया: {title}")
                             sent_deals.add(deal_id)
-                            # मेमोरी सुरक्षित रखने के लिए पुरानी लिस्ट को सीमित रखना
+                            # मेमोरी को हल्का रखने के लिए पुरानी पुरानी आईडी हटाना
                             if len(sent_deals) > 1000:
                                 sent_deals.pop()
                         else:
                             print(f"टेलीग्राम पर भेजने में असफल: {tg_res.text}")
                             
-                        # हर डील भेजने के बीच थोड़ा गैप ताकि फ्लड न हो
+                        # हर डील के बीच 5 सेकंड का गैप
                         time.sleep(5)
             else:
                 print(f"Cuelinks API एरर: {response.status_code} - {response.text}")
@@ -94,8 +77,5 @@ def fetch_and_post_deals():
         time.sleep(900)
 
 if __name__ == "__main__":
-    # पहले वेब सर्वर चालू करें ताकि Render का पोर्ट चेक पास हो जाए
-    keep_alive()
-    # फिर बैकग्राउंड में बोट का लूप शुरू करें
     fetch_and_post_deals()
     

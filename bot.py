@@ -3,17 +3,17 @@ import time
 import urllib.request
 import json
 
-# Railway के एनवायरनमेंट वेरिएबल्स से सुरक्षित रूप से डेटा लेना
+# Railway के एनवायरनमेंट वेरिएबल्स से डेटा लेना
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 CHAT_ID = os.environ.get('CHAT_ID')
 CUELINKS_API_KEY = os.environ.get('CUELINKS_API_KEY')
 
-# डुप्लीकेट रोकने के लिए भेजी गई डील्स का रिकॉर्ड रखने की सेट (Set)
+# डुप्लीकेट रोकने के लिए सेट
 sent_deals = set()
 
 def fetch_and_post_deals():
     if not BOT_TOKEN or not CUELINKS_API_KEY or not CHAT_ID:
-        print("त्रुटि: Railway में Variables (BOT_TOKEN, CHAT_ID, CUELINKS_API_KEY) सेट नहीं हैं!")
+        print("त्रुटि: Railway में Variables सेट नहीं हैं!")
         return
 
     url = "https://links.cuelinks.com/api/v2/deals"
